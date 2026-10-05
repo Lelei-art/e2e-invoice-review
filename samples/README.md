@@ -1,24 +1,17 @@
 # Sample invoices
 
-The project uses a generated golden corpus of 12 fictional invoices plus one Dutch fuel receipt in English, Dutch, German, and French. `manifest.json` records the expected document type, normalized fields, and policy outcomes. No private document or random internet scrape belongs in this repository.
+The project includes 12 fictional invoices and one Dutch fuel receipt in English, Dutch, German, and French. `manifest.json` records the expected document type, normalized fields, and policy outcomes. No private document or random internet scrape belongs in this repository.
 
-Regenerate and verify it with:
+All committed samples are already generated. This branch does not include a sample-generation or corpus-evaluation script.
 
-```bash
-cd backend
-uv run python scripts/generate_samples.py
-cd ..
-jq '{documents: length, pages: ([.[].pages] | add)}' samples/manifest.json
-```
-
-Evaluate the complete golden corpus against the configured live Azure resource with:
+To inspect a sample with Document Intelligence, run the corresponding playground command from the repository root:
 
 ```bash
-cd backend
-uv run python scripts/evaluate_corpus.py
+uv run --project backend --locked --no-sync python -m playground.map_document --type invoice samples/generated/01-en-happy-classic.pdf
+uv run --project backend --locked --no-sync python -m playground.map_document --type receipt samples/generated/13-nl-fuel-receipt.png
 ```
 
-The extraction evaluator routes each manifest entry to `prebuilt-invoice` or `prebuilt-receipt`, compares normalized fields, and continues past individual provider failures. Running it consumes 13 Azure analyze transactions across 14 pages. `scripts/evaluate_hybrid.py` runs the Dutch invoice and fuel receipt through both extraction methods and reports primary fields, LLM fallbacks, conflicts, final status, and call counts.
+Each command sends one document to Azure and may incur usage charges. There is no local corpus evaluator in this branch.
 
 The committed set contains eleven PDFs and two PNG images. VAT values are fictional checksum examples and are never presented as verified business registrations.
 

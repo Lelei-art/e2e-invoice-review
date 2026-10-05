@@ -27,14 +27,12 @@ class AzureOpenAIService:
 
     def __init__(self) -> None:
         self._provider = AzureOpenAIProvider()
-        try:
-            self._document_intelligence = DocumentIntelligenceService()
-        except Exception:
-            self._provider.close()
-            raise
+        self._document_intelligence: DocumentIntelligenceService | None = None
 
     def analyze_invoice(self, document_path: Path) -> InvoiceAnalysis:
-        document_intelligence = self._document_intelligence.extract_invoice(document_path)
+        document_intelligence = self._get_document_intelligence().extract_invoice(
+            document_path
+        )
         azure_openai = self._provider.analyze_document(
             document_path,
             instructions=(
@@ -57,7 +55,9 @@ class AzureOpenAIService:
         )
 
     def analyze_receipt(self, document_path: Path) -> ReceiptAnalysis:
-        document_intelligence = self._document_intelligence.extract_receipt(document_path)
+        document_intelligence = self._get_document_intelligence().extract_receipt(
+            document_path
+        )
         azure_openai = self._provider.analyze_document(
             document_path,
             instructions=(
@@ -91,7 +91,13 @@ class AzureOpenAIService:
         try:
             self._provider.close()
         finally:
-            self._document_intelligence.close()
+            if self._document_intelligence is not None:
+                self._document_intelligence.close()
+
+    def _get_document_intelligence(self) -> DocumentIntelligenceService:
+        if self._document_intelligence is None:
+            self._document_intelligence = DocumentIntelligenceService()
+        return self._document_intelligence
 
 
 @overload
