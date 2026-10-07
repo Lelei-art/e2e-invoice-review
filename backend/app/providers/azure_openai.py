@@ -53,6 +53,26 @@ class AzureOpenAIProvider:
         answer, _ = self.generate_response_with_dump(prompt)
         return answer
 
+    def generate_structured_response(
+        self,
+        prompt: str,
+        *,
+        response_format: type[T],
+    ) -> T:
+        response = self._request(
+            lambda: self._client.responses.parse(
+                model=MODEL_NAME,
+                input=prompt,
+                text_format=response_format,
+            )
+        )
+        if response.output_parsed is None:
+            raise AzureOpenAIRequestError(
+                "Structured response error",
+                "The model did not return the requested structured response.",
+            )
+        return response.output_parsed
+
     def generate_response_with_dump(self, prompt: str) -> tuple[str, dict[str, object]]:
         response = self._request(
             lambda: self._client.responses.create(

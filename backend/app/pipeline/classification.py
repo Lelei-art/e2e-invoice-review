@@ -6,5 +6,9 @@ from backend.app.providers.azure_document_classifier import (
 from backend.app.schemas.classification import DocumentClassification
 
 
-async def classify_document(document_path: Path) -> DocumentClassification:
-    return await classify_with_azure_openai(document_path)
+class DocumentClassificationStep:
+    """Pipeline step that sends a local document to the configured classifier."""
+
+    async def run(self, *, document_path: Path) -> DocumentClassification:
+        """Classify `document_path` and return the provider-independent Pydantic result."""
+        return await classify_with_azure_openai(document_path=document_path)

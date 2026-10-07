@@ -36,6 +36,12 @@ class InvoiceExtraction(StrictSchema):
     subtotal: Decimal | None = None
     total_tax: Decimal | None = None
     invoice_total: Decimal | None = None
-    amount_due: Decimal | None = None
+    amount_due: Decimal | None = Field(
+        default=None,
+        description=(
+            "The remaining balance currently payable, only when explicitly shown. "
+            "Do not copy invoice_total when the invoice does not show a separate amount due."
+        ),
+    )
     line_items: list[InvoiceExtractionLineItem] = Field(default_factory=list)
     tax_details: list[InvoiceExtractionTaxDetail] = Field(default_factory=list)

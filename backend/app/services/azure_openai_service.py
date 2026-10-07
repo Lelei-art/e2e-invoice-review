@@ -39,12 +39,18 @@ class AzureOpenAIService:
                 "Extract the invoice fields from the provided document. Use only values "
                 "visible in the document. Return null for missing or uncertain scalar "
                 "fields and an empty list when there are no readable line items or tax "
-                "details. Do not infer values or decide whether the invoice is valid."
+                "details. For amount_due, capture the remaining balance payable only when "
+                "the invoice explicitly shows it; distinguish it from invoice_total and "
+                "do not copy the invoice total into amount_due. Do not infer values or "
+                "decide whether the invoice is valid."
             ),
             response_format=InvoiceExtraction,
         )
         merged, provenance, conflicts = _merge(
             document_intelligence, azure_openai
+        )
+        merged = merged.model_copy(
+            update={"field_provenance": provenance, "conflicts": conflicts}
         )
         return InvoiceAnalysis(
             document_intelligence=document_intelligence,
@@ -70,6 +76,9 @@ class AzureOpenAIService:
         )
         merged, provenance, conflicts = _merge(
             document_intelligence, azure_openai
+        )
+        merged = merged.model_copy(
+            update={"field_provenance": provenance, "conflicts": conflicts}
         )
         return ReceiptAnalysis(
             document_intelligence=document_intelligence,

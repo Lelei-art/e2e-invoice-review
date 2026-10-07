@@ -23,4 +23,9 @@ class ExtractionConflict(StrictSchema):
 
 
 class FieldProvenance(StrictSchema):
-    source: Literal["document_intelligence", "azure_openai", "missing"]
+    source: Literal[
+        "document_intelligence",
+        "azure_openai",
+        "human",
+        "missing",
+    ]

@@ -7,17 +7,9 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-try:
-    from backend.app.services.document_intelligence_service import (
-        DocumentIntelligenceService,
-    )
-except (
-    ModuleNotFoundError
-):  # pragma: no cover - only used when project deps are not installed
-    raise SystemExit(
-        "Install the backend project environment first, then rerun this script with "
-        "'uv run --project backend --locked --no-sync python -m playground.analyze_invoice'."
-    ) from None
+from backend.app.services.document_intelligence_service import (  # noqa: E402
+    DocumentIntelligenceService,
+)
 
 DEFAULT_RECEIPT = REPOSITORY_ROOT / "samples" / "generated" / "13-nl-fuel-receipt.png"
 

@@ -33,6 +33,18 @@ cd ../frontend
 pnpm install --frozen-lockfile
 ```
 
+## Run the application
+
+From the repository root on Windows, start both local development servers in PowerShell:
+
+```powershell
+.\run-dev.ps1
+```
+
+The frontend is available at <http://localhost:5173>, the backend at <http://127.0.0.1:8000>, and the interactive API docs at <http://127.0.0.1:8000/docs>. Press Ctrl+C in that terminal to stop the session. Install backend and frontend dependencies first.
+
+On macOS/Linux or Git Bash, use `bash run-dev.sh` instead.
+
 Copy `backend/.env.example` to `backend/.env` and `frontend/.env.example` to `frontend/.env` when the tutorial reaches environment configuration. The backend file contains only Azure provider configuration; the frontend file contains `VITE_API_BASE_URL`. Add real Azure values only when the provider stages require them.
 
 ## Verify the starter installation

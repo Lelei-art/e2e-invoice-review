@@ -2,7 +2,13 @@
 
 The project includes 12 fictional invoices and one Dutch fuel receipt in English, Dutch, German, and French. `manifest.json` records the expected document type, normalized fields, and policy outcomes. No private document or random internet scrape belongs in this repository.
 
-All committed samples are already generated. This branch does not include a sample-generation or corpus-evaluation script.
+All committed samples are already generated. Run the offline policy check against the expected manifest outcomes:
+
+```powershell
+uv run --project backend --locked --no-sync python backend/scripts/evaluate_corpus.py
+```
+
+This verifies deterministic issue codes and duplicate behavior without Azure. The optional live evaluator (`--live`) can make up to 52 provider requests for 13 documents and may incur charges. See [the API and pipeline guide](../docs/api-and-pipeline.md#checking-the-evaluation-manifest) for details.
 
 To inspect a sample with Document Intelligence, run the corresponding playground command from the repository root:
 
@@ -11,7 +17,7 @@ uv run --project backend --locked --no-sync python -m playground.map_document --
 uv run --project backend --locked --no-sync python -m playground.map_document --type receipt samples/generated/13-nl-fuel-receipt.png
 ```
 
-Each command sends one document to Azure and may incur usage charges. There is no local corpus evaluator in this branch.
+Each mapping command sends one document to Azure and may incur usage charges.
 
 The committed set contains eleven PDFs and two PNG images. VAT values are fictional checksum examples and are never presented as verified business registrations.
 

@@ -4,7 +4,12 @@ from typing import Literal
 
 from pydantic import Field
 
-from backend.app.schemas.shared import StrictSchema, TaxDetail
+from backend.app.schemas.shared import (
+    ExtractionConflict,
+    FieldProvenance,
+    StrictSchema,
+    TaxDetail,
+)
 
 
 class InvoiceLineItem(StrictSchema):
@@ -37,3 +42,5 @@ class Invoice(StrictSchema):
     line_items: list[InvoiceLineItem] = Field(default_factory=list)
     tax_details: list[TaxDetail] = Field(default_factory=list)
     field_confidence: dict[str, float] = Field(default_factory=dict)
+    field_provenance: dict[str, FieldProvenance] = Field(default_factory=dict)
+    conflicts: list[ExtractionConflict] = Field(default_factory=list)
