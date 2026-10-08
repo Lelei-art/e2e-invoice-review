@@ -2,7 +2,7 @@
 
 This is the clean starter for an end-to-end invoice and receipt review application. You will build a workflow for Apex Facilities B.V. that combines Azure document extraction, deterministic finance rules, SQLite persistence, and a human review interface.
 
-> You are on `main`, the learner starter. Active work is visible on `development`; the reviewed finished application is on `solution`.
+> You are on `main`, the learner starter. Active work is visible on `development`; the reviewed finished application is on `solutions`.
 
 Tutorial: <https://learn.datalumina.com/docs/invoice-review>
 
@@ -61,12 +61,12 @@ pnpm install --frozen-lockfile
 
 - `main`: clone this branch to follow the tutorial from the prepared starting point.
 - `development`: inspect the public working branch and later experiments.
-- `solution`: inspect the reviewed end product.
+- `solutions`: inspect the reviewed end product.
 
 To switch to the finished application:
 
 ```bash
-git switch solution
+git switch solutions
 ```
 
 Start with [the client brief](docs/client-brief.md), then follow the [complete tutorial](https://learn.datalumina.com/docs/invoice-review).
