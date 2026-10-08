@@ -3,7 +3,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -27,7 +27,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -51,7 +51,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -75,7 +75,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -99,7 +99,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -125,7 +125,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -151,7 +151,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "FR40303265045",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -177,7 +177,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -203,7 +203,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -229,7 +229,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -255,7 +255,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",
@@ -279,7 +279,7 @@
     "document_type": "invoice",
     "expected": {
       "currency": "EUR",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "document_type": "invoice",
       "due_date": "2026-07-31",

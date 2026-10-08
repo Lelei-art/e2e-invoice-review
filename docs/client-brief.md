@@ -2,9 +2,9 @@
 
 ## The company
 
-Northstar Facilities B.V. is a fictional facilities-management company based in Amsterdam. It buys cleaning, maintenance, electrical, plumbing, and equipment services from suppliers across the European Union.
+Apex Facilities B.V. is a fictional facilities-management company based in Amsterdam. It buys cleaning, maintenance, electrical, plumbing, and equipment services from suppliers across the European Union.
 
-Maya works in finance and administration. Supplier invoices and employee expense receipts arrive as digital PDFs, scans, screenshots, and phone photos. They may be written in English, Dutch, German, or French. Before a document enters bookkeeping, Maya needs to know what it is, confirm the important values, check VAT and totals, and assign the correct account.
+Bill works in finance and administration. Supplier invoices and employee expense receipts arrive as digital PDFs, scans, screenshots, and phone photos. They may be written in English, Dutch, German, or French. Before a document enters bookkeeping, Bill needs to know what it is, confirm the important values, check VAT and totals, and assign the correct account.
 
 All product copy, source code, documentation, and teaching content is English. Only the example supplier documents vary in language.
 
@@ -23,15 +23,15 @@ All product copy, source code, documentation, and teaching content is English. O
 - Receipt merchant, transaction date, expense category, subtotal, VAT, and total.
 - Offline EU invoice VAT format/checksum validation plus receipt VAT-total reconciliation.
 - Separate deterministic invoice and receipt policies, duplicate detection, corrections, approval, and rejection.
-- A fixed Northstar GL catalog plus an Azure OpenAI structured suggestion that a reviewer can override.
+- A fixed Apex Facilities GL catalog plus an Azure OpenAI structured suggestion that a reviewer can override.
 - SQLite, local file storage, and a guided welcome → upload/preview → process → review flow.
 - Review history with explicit local deletion so the same invoice can be demonstrated again.
 - An on-demand Azure OpenAI correction-email draft with Copy and Close; the app never sends it.
 - A 13-document fictional multilingual corpus containing 12 invoices and one imperfect Dutch fuel receipt.
 
-## Northstar policy
+## Apex Facilities policy
 
-The Northstar policy is simply the fictional company's rulebook expressed as ordinary Python. It decides what must be fixed before approval; Azure extracts evidence, but it does not own these rules.
+The Apex Facilities policy is simply the fictional company's rulebook expressed as ordinary Python. It decides what must be fixed before approval; Azure extracts evidence, but it does not own these rules.
 
 ### Invoice rules
 
@@ -41,6 +41,6 @@ Errors block approval: missing vendor/customer identity, missing or malformed su
 
 A receipt records an expense that was already paid, so it does not need an invoice number, customer VAT, PO, or due date. Merchant, transaction date, currency, positive total, and VAT total are required. When subtotal and VAT are present, they must reconcile to the total within EUR 0.01. Low primary confidence is a warning.
 
-A valid selected Northstar GL account is also required for approval. The model may suggest one, but Maya remains responsible for the selection.
+A valid selected Apex Facilities GL account is also required for approval. The model may suggest one, but Bill remains responsible for the selection.
 
-Document Intelligence stays primary. An LLM value can fill a missing field, but it cannot replace a conflicting primary value, validate VAT, or decide approval. Maya sees where every fallback came from.
+Document Intelligence stays primary. An LLM value can fill a missing field, but it cannot replace a conflicting primary value, validate VAT, or decide approval. Bill sees where every fallback came from.

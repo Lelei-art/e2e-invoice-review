@@ -1,6 +1,6 @@
 # Invoice Review frontend
 
-The React app lets Maya upload and preview a document, then follows real backend progress events. Its saved-review inbox supports editing extracted values, rerunning deterministic checks, selecting a GL account, passing or rejecting the document, and drafting an unsent supplier-correction email.
+The React app lets Bill upload and preview a document, then follows real backend progress events. Its saved-review inbox supports editing extracted values, rerunning deterministic checks, selecting a GL account, passing or rejecting the document, and drafting an unsent supplier-correction email.
 
 ## Run locally
 

@@ -1,1 +1,1 @@
-"""Fixed Northstar accounting catalog and selection validation."""
+"""Fixed Apex Facilities accounting catalog and selection validation."""

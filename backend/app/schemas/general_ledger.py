@@ -26,7 +26,7 @@ class GeneralLedgerAccount(StrictSchema):
 
 class GeneralLedgerSuggestion(StrictSchema):
     account_code: GLAccountCode = Field(
-        description="One account code from Northstar's fixed general ledger catalog."
+        description="One account code from Apex Facilities' fixed general ledger catalog."
     )
     reason: str = Field(
         min_length=1,

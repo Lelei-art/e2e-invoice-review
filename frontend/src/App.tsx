@@ -10,7 +10,7 @@ const pipelineStages: Array<{ name: PipelineStageName; title: string; detail: st
   { name: 'classification', title: 'Classify document', detail: 'Identify invoice or receipt' },
   { name: 'extraction', title: 'Extract document fields', detail: 'Read the financial details' },
   { name: 'validation', title: 'Validate VAT and policy', detail: 'Check required fields and totals' },
-  { name: 'general_ledger', title: 'Suggest GL account', detail: 'Choose from Northstar’s catalog' },
+  { name: 'general_ledger', title: 'Suggest GL account', detail: 'Choose from Apex Facilities’ catalog' },
 ]
 type VisibleStageStatus = 'pending' | 'in_progress' | 'completed' | 'failed'
 type PipelineStageStates = Record<PipelineStageName, VisibleStageStatus>
@@ -115,10 +115,10 @@ function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <a aria-label="Northstar document review home" className="brand" href="/">
+        <a aria-label="Apex Facilities document review home" className="brand" href="/">
           <span className="brand-mark" aria-hidden="true">N</span>
           <span className="brand-copy">
-            <strong>northstar</strong>
+            <strong>apex</strong>
             <span>FACILITIES B.V.</span>
           </span>
         </a>
@@ -251,7 +251,7 @@ function App() {
         />
       </main>
       <footer className="page-footer">
-        <span>Northstar Facilities B.V. <i /> Document review</span>
+        <span>Apex Facilities B.V. <i /> Document review</span>
         <span>Internal finance workspace</span>
       </footer>
     </div>

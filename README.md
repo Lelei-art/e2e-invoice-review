@@ -1,6 +1,6 @@
 # Invoice Review
 
-This is the clean starter for an end-to-end invoice and receipt review application. You will build a workflow for Northstar Facilities B.V. that combines Azure document extraction, deterministic finance rules, SQLite persistence, and a human review interface.
+This is the clean starter for an end-to-end invoice and receipt review application. You will build a workflow for Apex Facilities B.V. that combines Azure document extraction, deterministic finance rules, SQLite persistence, and a human review interface.
 
 > You are on `main`, the learner starter. Active work is visible on `development`; the reviewed finished application is on `solution`.
 

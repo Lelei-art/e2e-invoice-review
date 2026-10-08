@@ -67,7 +67,7 @@ def validate_invoice(invoice: Invoice) -> list[ValidationFinding]:
             _error(
                 "customer_vat_id_mismatch",
                 "customer_vat_id",
-                "Customer VAT number does not match Northstar Facilities B.V.",
+                "Customer VAT number does not match Apex Facilities B.V.",
             )
         )
 

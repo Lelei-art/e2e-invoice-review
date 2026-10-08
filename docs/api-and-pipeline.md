@@ -10,7 +10,7 @@ From the repository root, start the API with the existing locked backend environ
 uv run --project backend --locked --no-sync uvicorn backend.app.main:app --reload
 ```
 
-The API is titled **Northstar Financial Document Review API** in OpenAPI. It listens at `http://127.0.0.1:8000`; the frontend runs separately at `http://localhost:5173` and sends requests to `http://localhost:8000` by default. Set `VITE_API_BASE_URL` in the frontend environment to use a different API base URL. Azure provider settings must be configured in `backend/.env` for document processing; health, review-history, and API-description requests do not need Azure credentials.
+The API is titled **Apex Facilities Financial Document Review API** in OpenAPI. It listens at `http://127.0.0.1:8000`; the frontend runs separately at `http://localhost:5173` and sends requests to `http://localhost:8000` by default. Set `VITE_API_BASE_URL` in the frontend environment to use a different API base URL. Azure provider settings must be configured in `backend/.env` for document processing; health, review-history, and API-description requests do not need Azure credentials.
 
 Open `http://localhost:8000/docs` for interactive Swagger UI, `http://localhost:8000/redoc` for ReDoc, or `http://localhost:8000/openapi.json` for the OpenAPI document.
 
@@ -83,7 +83,7 @@ Returns `200 OK` and a `DocumentReview` JSON object. The extracted pipeline resu
       "invoice_date": "2026-01-12",
       "vendor_name": "Example Supplier B.V.",
       "vendor_vat_id": "NL123456789B01",
-      "customer_name": "Northstar Facilities B.V.",
+      "customer_name": "Apex Facilities B.V.",
       "customer_vat_id": "NL00449544B01",
       "currency": "EUR",
       "subtotal": "100.00",
@@ -145,7 +145,7 @@ Success returns `204 No Content`; an unknown ID returns `404 Not Found`. Deletin
 
 ### `PATCH /api/documents/{review_id}` and decision
 
-Maya can correct extracted scalar fields and explicitly select a GL account by sending a `PATCH` request. The server validates the fields, reruns the local finance rules and duplicate check, marks edited fields as human-provided, and saves the updated review:
+Bill can correct extracted scalar fields and explicitly select a GL account by sending a `PATCH` request. The server validates the fields, reruns the local finance rules and duplicate check, marks edited fields as human-provided, and saves the updated review:
 
 ```json
 {
@@ -177,13 +177,13 @@ Both decisions use `POST /api/documents/{review_id}/decision` and return the sav
 
 ### `POST /api/documents/{review_id}/correction-email`
 
-When supplier-correctable findings are present, Maya can request a structured draft:
+When supplier-correctable findings are present, Bill can request a structured draft:
 
 ```json
 {"recipient_email": "supplier@example.eu"}
 ```
 
-The response contains `to`, `subject`, and `body`. This endpoint makes an on-demand Azure OpenAI call and drafts text only; it does not send email. The draft is based on the findings and extracted values and remains for Maya to review and copy.
+The response contains `to`, `subject`, and `body`. This endpoint makes an on-demand Azure OpenAI call and drafts text only; it does not send email. The draft is based on the findings and extracted values and remains for Bill to review and copy.
 
 ### `POST /api/documents/progress`
 
@@ -277,17 +277,17 @@ If the result is `other`, the pipeline stops. It does not run extraction, financ
 
 ### 3. Financial-field extraction
 
-For an invoice, `DocumentIntelligenceExtractionStep` uses Azure AI Document Intelligence's `prebuilt-invoice` model. For a receipt, it uses `prebuilt-receipt`. The independent Azure OpenAI extraction analyzes the same original file. Document Intelligence remains primary: deterministic merging fills only missing fields, keeps the primary value on conflict, and exposes field provenance and disagreements to Maya.
+For an invoice, `DocumentIntelligenceExtractionStep` uses Azure AI Document Intelligence's `prebuilt-invoice` model. For a receipt, it uses `prebuilt-receipt`. The independent Azure OpenAI extraction analyzes the same original file. Document Intelligence remains primary: deterministic merging fills only missing fields, keeps the primary value on conflict, and exposes field provenance and disagreements to Bill.
 
 ### 4. Deterministic VAT and policy checks
 
-`DocumentValidationStep` calls local Python rules; this stage does not ask a model to decide whether a document is acceptable. Invoice rules check required parties and identifiers, EU VAT format/checksum, Northstar's customer VAT ID, positive totals, date ordering, amount reconciliation, missing purchase-order warnings, and low extraction-confidence warnings. Receipt rules check required merchant/date/currency/total/VAT values, positive totals, subtotal/VAT/tip reconciliation, and low-confidence warnings. Reconciliation uses a EUR `0.01` tolerance.
+`DocumentValidationStep` calls local Python rules; this stage does not ask a model to decide whether a document is acceptable. Invoice rules check required parties and identifiers, EU VAT format/checksum, Apex Facilities' customer VAT ID, positive totals, date ordering, amount reconciliation, missing purchase-order warnings, and low extraction-confidence warnings. Receipt rules check required merchant/date/currency/total/VAT values, positive totals, subtotal/VAT/tip reconciliation, and low-confidence warnings. Reconciliation uses a EUR `0.01` tolerance.
 
 These checks are local format/checksum and policy checks, not a live VIES VAT registration lookup.
 
 ### 5. GL suggestion
 
-The GL categorizer receives normalized invoice or receipt fields, not the original document image. Azure OpenAI returns a structured suggestion constrained to the application's fixed Northstar GL catalog. The API returns both the full fixed catalog and the suggested account. The suggestion is advisory; model output does not change the catalog or finance policy.
+The GL categorizer receives normalized invoice or receipt fields, not the original document image. Azure OpenAI returns a structured suggestion constrained to the application's fixed Apex Facilities GL catalog. The API returns both the full fixed catalog and the suggested account. The suggestion is advisory; model output does not change the catalog or finance policy.
 
 ### 6. Duplicate history and final response
 

@@ -37,7 +37,7 @@ async def suggest_general_ledger(
             model,
             output_type=GeneralLedgerSuggestion,
             instructions=(
-                "Suggest the single best Northstar general ledger account for this document. "
+                "Suggest the single best Apex Facilities general ledger account for this document. "
                 "Use only the supplied normalized financial-document fields and choose "
                 "exactly one code from "
                 "the fixed catalog below. Do not create or modify account codes; the "

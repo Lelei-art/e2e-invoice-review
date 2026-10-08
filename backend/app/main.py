@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.routes import router
 
-app = FastAPI(title="Northstar Financial Document Review API", version="0.1.0")
+app = FastAPI(title="Apex Facilities Financial Document Review API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],

@@ -267,7 +267,7 @@ The terminal prints the model name, selected document path, and a JSON object wi
 
 ### Why
 
-Each step has one responsibility and passes a typed result to the next. Document Intelligence remains the source of extracted values. The final ledger categorizer receives normalized invoice or receipt fields only and returns a structured code from the fixed ten-account Northstar catalog in `backend/app/accounting/catalog.py`; it cannot create new accounts or decide approval. VAT validation uses `python-stdnum` locally and does not query VIES. Invoice and receipt totals are compared with a EUR 0.01 tolerance; receipt tips are included in the reconciliation.
+Each step has one responsibility and passes a typed result to the next. Document Intelligence remains the source of extracted values. The final ledger categorizer receives normalized invoice or receipt fields only and returns a structured code from the fixed ten-account Apex Facilities catalog in `backend/app/accounting/catalog.py`; it cannot create new accounts or decide approval. VAT validation uses `python-stdnum` locally and does not query VIES. Invoice and receipt totals are compared with a EUR 0.01 tolerance; receipt tips are included in the reconciliation.
 
 ### Commands
 
@@ -304,7 +304,7 @@ The terminal logs each pipeline stage to standard error: classification, Documen
 
 ### Outcome
 
-Invoice and receipt validation now have separate deterministic policies in `backend/app/invoices/validation.py`. Invoice checks cover required identities and fields, supplier/customer VAT (including Northstar's expected customer VAT ID), positive totals, date order, EUR 0.01 reconciliation, missing-PO warnings, and low-confidence warnings. Receipt checks cover required merchant/date/currency/total/VAT, positive totals, subtotal/VAT/tip reconciliation, and low-confidence warnings.
+Invoice and receipt validation now have separate deterministic policies in `backend/app/invoices/validation.py`. Invoice checks cover required identities and fields, supplier/customer VAT (including Apex Facilities' expected customer VAT ID), positive totals, date order, EUR 0.01 reconciliation, missing-PO warnings, and low-confidence warnings. Receipt checks cover required merchant/date/currency/total/VAT, positive totals, subtotal/VAT/tip reconciliation, and low-confidence warnings.
 
 The processing service records a SHA-256 fingerprint of each normalized document in the local SQLite database at `backend/data/invoice-review.sqlite3`. It does not store raw invoice fields or uploaded files; because the fingerprints are derived from business identifiers, treat the local database as sensitive. A repeated invoice with the same supplier VAT ID and invoice number adds a blocking error. A receipt matching merchant, transaction date, currency, and total adds a review warning because the same purchase amount can occur more than once. Unidentifiable documents are still recorded, but cannot be matched for duplicates. The database is ignored by Git.
 
@@ -337,7 +337,7 @@ The first successful processing run has no duplicate finding. Processing the sam
 
 - [ ] Invoices and receipts follow their separate required-field, reconciliation, and confidence rules.
 - [ ] Missing purchase orders are invoice warnings; receipts do not require an invoice number, PO, or customer VAT.
-- [ ] Invoice customer VAT is checked against Northstar's fictional VAT ID.
+- [ ] Invoice customer VAT is checked against Apex Facilities' fictional VAT ID.
 - [ ] Reprocessing an invoice with the same supplier VAT ID and invoice number produces a blocking duplicate finding.
 - [ ] Reprocessing a receipt with the same merchant, date, currency, and total produces a warning.
 - [ ] Duplicate history is stored in the Git-ignored local SQLite database.
@@ -346,7 +346,7 @@ The first successful processing run has no duplicate finding. Processing the sam
 
 ### Outcome
 
-`backend/app/main.py` creates the **Northstar Financial Document Review API**. Both upload routes process one invoice or receipt and save a review record in local SQLite. The API lists/retrieves reviews, lets Maya edit extracted values and select a GL account, revalidates changes, records a guarded pass/approval or rejection with a required reason, generates unsent correction-email drafts, and deletes reviews with their duplicate fingerprints. Temporary upload bytes are removed after processing. See [API endpoints and document-processing pipeline](./api-and-pipeline.md) for the route contract and lifecycle.
+`backend/app/main.py` creates the **Apex Facilities Financial Document Review API**. Both upload routes process one invoice or receipt and save a review record in local SQLite. The API lists/retrieves reviews, lets Bill edit extracted values and select a GL account, revalidates changes, records a guarded pass/approval or rejection with a required reason, generates unsent correction-email drafts, and deletes reviews with their duplicate fingerprints. Temporary upload bytes are removed after processing. See [API endpoints and document-processing pipeline](./api-and-pipeline.md) for the route contract and lifecycle.
 
 ### Why
 
@@ -384,7 +384,7 @@ Use `http://127.0.0.1:8000/docs` to try the PATCH, decision, and correction-draf
 
 ### What you should observe
 
-The health endpoint returns `{"status":"ok"}`. A supported upload returns a review ID, status, and nested pipeline result. An edit saves human-provided field values and refreshed validation findings. Approval is rejected unless all blocking findings are resolved and Maya selected a GL account; rejection requires a reason. Final reviews are locked. DELETE returns HTTP 204 and clears the linked duplicate fingerprint. Unsupported file types return HTTP 415, empty files return HTTP 422, and uploads larger than 4 MB return HTTP 413. Uploaded bytes are not retained after processing.
+The health endpoint returns `{"status":"ok"}`. A supported upload returns a review ID, status, and nested pipeline result. An edit saves human-provided field values and refreshed validation findings. Approval is rejected unless all blocking findings are resolved and Bill selected a GL account; rejection requires a reason. Final reviews are locked. DELETE returns HTTP 204 and clears the linked duplicate fingerprint. Unsupported file types return HTTP 415, empty files return HTTP 422, and uploads larger than 4 MB return HTTP 413. Uploaded bytes are not retained after processing.
 
 ### Checkpoint
 
@@ -399,7 +399,7 @@ The health endpoint returns `{"status":"ok"}`. A supported upload returns a revi
 
 ### Outcome
 
-The React frontend provides upload, preview, live processing, a saved-review inbox, and a review workspace. Maya can check document values, billed items, the VAT breakdown, and readable comparisons when two readings disagree. Invoice extraction includes a separately shown remaining amount due when the document explicitly states one; the field stays blank rather than guessing from the invoice total. Editing a value or selecting an account and then choosing a decision saves the changes and reruns finance checks first. Passing is blocked if issues remain or no account is selected; rejection requires a reason. Final reviews lock, and deletion removes the review and its duplicate fingerprint.
+The React frontend provides upload, preview, live processing, a saved-review inbox, and a review workspace. Bill can check document values, billed items, the VAT breakdown, and readable comparisons when two readings disagree. Invoice extraction includes a separately shown remaining amount due when the document explicitly states one; the field stays blank rather than guessing from the invoice total. Editing a value or selecting an account and then choosing a decision saves the changes and reruns finance checks first. Passing is blocked if issues remain or no account is selected; rejection requires a reason. Final reviews lock, and deletion removes the review and its duplicate fingerprint.
 
 ### Why
 
@@ -425,7 +425,7 @@ Open `http://localhost:5173`, choose a generated sample such as `samples/generat
 
 ### What you should observe
 
-Before selection, the drop zone invites file selection. The preview confirms the document before processing. Pipeline steps update from backend events. In the saved review, Maya can inspect details, billed items, VAT, and readable value comparisons, edit values, choose an account, and resolve validation issues. The pass action saves and rechecks pending edits before approval; rejection requires a reason and is also available for unsupported documents. Supplier email drafts are reviewed/copied manually, never sent.
+Before selection, the drop zone invites file selection. The preview confirms the document before processing. Pipeline steps update from backend events. In the saved review, Bill can inspect details, billed items, VAT, and readable value comparisons, edit values, choose an account, and resolve validation issues. The pass action saves and rechecks pending edits before approval; rejection requires a reason and is also available for unsupported documents. Supplier email drafts are reviewed/copied manually, never sent.
 
 ### Checkpoint
 
@@ -437,7 +437,7 @@ Before selection, the drop zone invites file selection. The preview confirms the
 - [ ] The frontend posts multipart field `file` to the configured API base URL.
 - [ ] Processing steps update from actual backend progress events in pipeline order.
 - [ ] Processing failures and unsupported classifications are visible.
-- [ ] History lists saved reviews and lets Maya reopen a review.
+- [ ] History lists saved reviews and lets Bill reopen a review.
 - [ ] Editing and saving reruns deterministic rules and marks changed values as human-provided.
 - [ ] Pending edits are saved and rechecked before a decision; approval requires no blocking errors and a selected bookkeeping account.
 - [ ] Rejection requires a reason, and the pass/reject confirmation actions record their decisions.
