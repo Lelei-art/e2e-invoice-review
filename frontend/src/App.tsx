@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { getDocument, processDocument } from './lib/api'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { getAuthSession, getDocument, login, logout, processDocument } from './lib/api'
 import { ReviewInbox } from './ReviewInbox'
 import { ReviewWorkspace } from './ReviewWorkspace'
 import type { DocumentReview, PipelineProgress, PipelineStageName } from './lib/types'
@@ -26,6 +26,10 @@ function createInitialStageStates(): PipelineStageStates {
 
 function App() {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [authState, setAuthState] = useState<'checking' | 'signedIn' | 'signedOut' | 'unavailable'>('checking')
+  const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [authBusy, setAuthBusy] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [review, setReview] = useState<DocumentReview | null>(null)
   const [screen, setScreen] = useState<'upload' | 'inbox' | 'review'>('upload')
@@ -33,6 +37,50 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [processingError, setProcessingError] = useState<string | null>(null)
   const [stageStates, setStageStates] = useState<PipelineStageStates>(createInitialStageStates)
+
+  useEffect(() => {
+    const handleAuthRequired = () => {
+      setAuthState('signedOut')
+      setAuthError('Your sign-in expired. Enter the shared password to continue.')
+    }
+    window.addEventListener('invoice-review:auth-required', handleAuthRequired)
+    void getAuthSession()
+      .then((authenticated) => setAuthState(authenticated ? 'signedIn' : 'signedOut'))
+      .catch((reason: unknown) => {
+        setAuthError(reason instanceof Error ? reason.message : 'Could not check sign-in status.')
+        setAuthState('unavailable')
+      })
+    return () => window.removeEventListener('invoice-review:auth-required', handleAuthRequired)
+  }, [])
+
+  async function submitLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (authBusy) return
+    setAuthBusy(true)
+    setAuthError(null)
+    try {
+      await login(password)
+      setPassword('')
+      setAuthState('signedIn')
+    } catch (reason) {
+      setAuthError(reason instanceof Error ? reason.message : 'Sign-in failed.')
+    } finally {
+      setAuthBusy(false)
+    }
+  }
+
+  async function signOut() {
+    setAuthBusy(true)
+    try {
+      await logout()
+      setAuthState('signedOut')
+      setAuthError(null)
+    } catch (reason) {
+      setAuthError(reason instanceof Error ? reason.message : 'Sign-out failed.')
+    } finally {
+      setAuthBusy(false)
+    }
+  }
 
   function openFilePicker() {
     if (inputRef.current) inputRef.current.value = ''
@@ -112,6 +160,50 @@ function App() {
     }
   }
 
+  if (authState !== 'signedIn') {
+    return (
+      <main className="auth-shell">
+        <section className="auth-card" aria-labelledby="auth-title">
+          <span className="brand-mark" aria-hidden="true">A</span>
+          <p className="auth-eyebrow">APEX FACILITIES B.V.</p>
+          <h1 id="auth-title">
+            {authState === 'checking' ? 'Checking access' : 'Shared workspace'}
+          </h1>
+          {authState === 'checking' ? (
+            <p className="auth-description">Checking your sign-in status…</p>
+          ) : authState === 'unavailable' ? (
+            <>
+              <p className="auth-description">The sign-in service could not be reached.</p>
+              {authError && <p className="error-banner" role="alert">{authError}</p>}
+              <button className="auth-submit" type="button" onClick={() => window.location.reload()}>
+                Try again
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="auth-description">Enter the shared password to access invoice reviews.</p>
+              <form className="auth-form" onSubmit={(event) => void submitLogin(event)}>
+                <label htmlFor="shared-password">Shared password</label>
+                <input
+                  autoComplete="current-password"
+                  id="shared-password"
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  type="password"
+                  value={password}
+                />
+                {authError && <p className="error-banner" role="alert">{authError}</p>}
+                <button className="auth-submit" disabled={authBusy} type="submit">
+                  {authBusy ? 'Signing in…' : 'Sign in'}
+                </button>
+              </form>
+            </>
+          )}
+        </section>
+      </main>
+    )
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -139,6 +231,9 @@ function App() {
             }}
           >
             Review inbox
+          </button>
+          <button disabled={authBusy} type="button" onClick={() => void signOut()}>
+            Sign out
           </button>
         </nav>
       </header>

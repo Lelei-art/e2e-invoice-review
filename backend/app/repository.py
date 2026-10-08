@@ -3,6 +3,7 @@ from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
 
+from backend.app.config import get_settings
 from backend.app.invoices.validation import duplicate_fingerprint
 from backend.app.schemas.invoice.model import Invoice
 from backend.app.schemas.pipeline import DocumentProcessingResult
@@ -25,7 +26,7 @@ class DocumentRepository:
         document: FinancialDocument | None,
     ) -> bool:
         self._initialize()
-        with closing(sqlite3.connect(self._database_path, timeout=30)) as connection:
+        with closing(self._connect()) as connection:
             with connection:
                 duplicate = self._has_duplicate(
                     connection,
@@ -52,7 +53,7 @@ class DocumentRepository:
 
     def get_review(self, review_id: str) -> DocumentReview | None:
         self._initialize()
-        with closing(sqlite3.connect(self._database_path, timeout=30)) as connection:
+        with closing(self._connect()) as connection:
             connection.row_factory = sqlite3.Row
             row = connection.execute(
                 "SELECT * FROM document_reviews WHERE id = ?",
@@ -62,7 +63,7 @@ class DocumentRepository:
 
     def list_reviews(self) -> list[DocumentReview]:
         self._initialize()
-        with closing(sqlite3.connect(self._database_path, timeout=30)) as connection:
+        with closing(self._connect()) as connection:
             connection.row_factory = sqlite3.Row
             rows = connection.execute(
                 "SELECT * FROM document_reviews ORDER BY created_at DESC, id DESC"
@@ -76,7 +77,7 @@ class DocumentRepository:
         excluding_review_id: str,
     ) -> bool:
         self._initialize()
-        with closing(sqlite3.connect(self._database_path, timeout=30)) as connection:
+        with closing(self._connect()) as connection:
             return self._has_duplicate(
                 connection,
                 document=document,
@@ -89,7 +90,7 @@ class DocumentRepository:
         document: FinancialDocument | None,
     ) -> None:
         self._initialize()
-        with closing(sqlite3.connect(self._database_path, timeout=30)) as connection:
+        with closing(self._connect()) as connection:
             with connection:
                 cursor = connection.execute(
                     """
@@ -124,7 +125,7 @@ class DocumentRepository:
 
     def delete_review(self, review_id: str) -> bool:
         self._initialize()
-        with closing(sqlite3.connect(self._database_path, timeout=30)) as connection:
+        with closing(self._connect()) as connection:
             with connection:
                 connection.execute(
                     "DELETE FROM processed_documents WHERE review_id = ?",
@@ -139,7 +140,7 @@ class DocumentRepository:
     def record_processed_document(self, document: FinancialDocument) -> bool:
         """Keep the standalone processing example's duplicate-history behavior."""
         self._initialize()
-        with closing(sqlite3.connect(self._database_path, timeout=30)) as connection:
+        with closing(self._connect()) as connection:
             with connection:
                 duplicate = self._has_duplicate(
                     connection,
@@ -155,7 +156,7 @@ class DocumentRepository:
 
     def _initialize(self) -> None:
         self._database_path.parent.mkdir(parents=True, exist_ok=True)
-        with closing(sqlite3.connect(self._database_path, timeout=30)) as connection:
+        with closing(self._connect()) as connection:
             with connection:
                 connection.execute(
                     """
@@ -198,6 +199,13 @@ class DocumentRepository:
                     )
                     """
                 )
+
+    def _connect(self) -> sqlite3.Connection:
+        vfs = get_settings().sqlite_vfs
+        if vfs is None:
+            return sqlite3.connect(self._database_path, timeout=30)
+        database_uri = f"{self._database_path.resolve().as_uri()}?vfs={vfs}"
+        return sqlite3.connect(database_uri, uri=True, timeout=30)
 
     def _has_duplicate(
         self,

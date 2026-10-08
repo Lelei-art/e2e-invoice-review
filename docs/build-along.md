@@ -514,3 +514,72 @@ Both processes write their logs to the terminal. Vite serves the welcome screen 
 - [ ] Both existing development servers start without dependency installation.
 - [ ] Their logs are visible in the same terminal session.
 - [ ] Ctrl+C ends the launcher session.
+
+## Deploy one protected container to Azure
+
+### Outcome
+
+The complete React application and FastAPI API run together in `ca-invoice-review` in the existing `rg-invoice-review` resource group. Its existing Document Intelligence and Foundry resources are reused. A shared password protects the review UI and API; SQLite review history persists on the `invoice-review-data` Azure Files share. Azure Container Apps provides the public HTTPS endpoint.
+
+### Why
+
+The built frontend uses same-origin API requests, so the deployment needs one public app endpoint rather than separate frontend and API services. Azure Files keeps the SQLite database outside the replaceable container. Its SMB mount requires SQLite's `unix-dotfile` VFS in this deployment; the default POSIX-lock VFS fails with `database is locked`. This setting is explicit and is only appropriate while the app remains a single replica using the same VFS for every connection. The app password and session-signing key are Container App secrets; the Azure provider keys are also injected as secrets and never added to the image or repository.
+
+### Commands
+
+The repository-root `Dockerfile` builds the frontend and installs the locked backend dependencies. The `.dockerignore` excludes local environment files, databases, and dependency/build directories. Build locally before provisioning:
+
+```powershell
+Set-Location frontend
+corepack pnpm install --frozen-lockfile
+corepack pnpm build
+Set-Location ..
+uv run --project backend --locked --no-sync ruff check backend/app
+```
+
+The deployed hosting resources reuse the existing resource group: ACR `acrinvrvw261008` and storage account `stinvrvw261008` are in East US; the Container Apps environment `cae-invoice-review-e2` and app `ca-invoice-review` are in East US 2. West Europe did not accept new hosting resources, and East US had no Container Apps capacity. The existing Foundry and Document Intelligence resources were not changed. Check the active subscription and resources before making any further deployment changes:
+
+```powershell
+az account show
+az group show --name rg-invoice-review
+az resource list --resource-group rg-invoice-review --output table
+az provider register --namespace Microsoft.App --wait
+az provider register --namespace Microsoft.ContainerRegistry --wait
+az provider register --namespace Microsoft.OperationalInsights --wait
+```
+
+The initial image was `acrinvrvw261008.azurecr.io/invoice-review:20261008-1153`. The SQLite-on-Azure-Files fix was built as `acrinvrvw261008.azurecr.io/invoice-review:20261008-094022-dotfile` and deployed by updating the existing app. For a later code update, generate a fresh tag rather than overwriting either deployed image:
+
+```powershell
+$tag = (Get-Date).ToUniversalTime().ToString('yyyyMMdd-HHmmss') + '-dotfile'
+az acr build --registry acrinvrvw261008 --resource-group rg-invoice-review --image "invoice-review:$tag" .
+az containerapp update --resource-group rg-invoice-review --name ca-invoice-review --image "acrinvrvw261008.azurecr.io/invoice-review:$tag" --set-env-vars SQLITE_VFS=unix-dotfile
+```
+
+The app already has the `invoice-review-data` Azure Files share mounted at `/app/backend/data`, public HTTPS ingress on port `8000`, one minimum/maximum replica, and Azure Monitor diagnostics. Do not create another registry, share, environment, or app. When configuring a fresh local development environment, leave `SQLITE_VFS` unset; only the Linux Azure Files deployment uses `unix-dotfile`. Keep the app at one replica and one Uvicorn process. Configure:
+
+- `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` and `AZURE_OPENAI_ENDPOINT` as endpoint environment variables.
+- `AZURE_DOCUMENT_INTELLIGENCE_KEY`, `AZURE_OPENAI_API_KEY`, `APP_ACCESS_PASSWORD`, and `APP_SESSION_SECRET` as Container App secrets, referenced by environment variables.
+- `FRONTEND_DIST_DIR=/app/frontend/dist`.
+- External ingress on port `8000`; Azure provides HTTPS.
+- An `ALLOWED_ORIGIN` is not needed for the combined same-origin frontend/API.
+
+Use the existing provider endpoint/key values from the ignored local `backend/.env`. Generate a new strong shared password and session secret for the hosted app; do not echo, commit, or pass secret values as build arguments. Obtain the final URL from `az containerapp show` after provisioning.
+
+### What you should observe
+
+`GET /health` returns `{"status":"ok"}`. The deployed HTTPS URL is `https://ca-invoice-review.happyplant-4cc89b4a.eastus2.azurecontainerapps.io/`. The active revision runs the `20261008-094022-dotfile` image with `SQLITE_VFS=unix-dotfile`, one replica, and the existing Azure Files mount. The UI returns HTTP 200; anonymous history access returns 401; password sign-in succeeds; and authenticated history access returns HTTP 200.
+
+For the manual end-to-end walkthrough, sign in at the deployed URL, upload the fictional `samples/generated/01-en-happy-classic.pdf`, and select **Start document review**. The result classified it as an invoice, extracted the parties and EUR 100.00 subtotal + EUR 21.00 VAT = EUR 121.00 total, completed validation, and suggested GL account 6090. It correctly remained **Needs review** because primary extraction confidence for the supplier name was below 0.80; there were no blocking errors. Navigating to the Review inbox showed the saved review, confirming persistence in the mounted database. The app does not retain the original upload. This walkthrough made paid Azure AI requests; do not repeat it unless another processing check is intended.
+
+The ACR Basic tier, storage, Container Apps environment, and logging may incur charges. Live document review also makes paid Azure AI requests. The shared password grants anyone who receives it access to the demo, so use fictional documents only and rotate it if shared beyond the intended audience.
+
+### Checkpoint
+
+- [ ] The existing AI resources remain in place; only missing hosting resources are added to `rg-invoice-review`.
+- [ ] Azure hosting providers are registered and the container build succeeds.
+- [ ] The Container App has public HTTPS ingress, one replica, the Azure Files data mount, and `SQLITE_VFS=unix-dotfile`.
+- [ ] `/health` is healthy; the sign-in screen is public, but review endpoints reject unauthenticated requests.
+- [ ] Sign-in succeeds with the shared password; the authenticated history endpoint initializes and reads the mounted SQLite database.
+- [x] The fictional `samples/generated/01-en-happy-classic.pdf` completed classification, extraction, validation, GL suggestion, and persisted in review history; the low-confidence warning leaves it for human review.
+- [ ] Review history remains after a new container revision starts.

@@ -1,0 +1,11 @@
+.git
+.github
+.ruff_cache
+**/__pycache__
+**/.env
+**/.venv
+**/node_modules
+backend/data
+frontend/dist
+samples
+*.sqlite3

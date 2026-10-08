@@ -6,6 +6,35 @@ import type {
   ReviewUpdate,
 } from './types'
 
+export async function getAuthSession(): Promise<boolean> {
+  const response = await apiRequest('/api/auth/session')
+  const payload: unknown = await response.json()
+  if (!isRecord(payload) || typeof payload.authenticated !== 'boolean') {
+    throw new Error('The API returned an invalid sign-in status.')
+  }
+  return payload.authenticated
+}
+
+export async function login(password: string): Promise<void> {
+  const response = await apiRequest('/api/auth/login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ password }),
+  })
+  const payload: unknown = await response.json()
+  if (!isRecord(payload) || payload.authenticated !== true) {
+    throw new Error('The API did not confirm sign-in.')
+  }
+}
+
+export async function logout(): Promise<void> {
+  const response = await apiRequest('/api/auth/logout', { method: 'POST' })
+  const payload: unknown = await response.json()
+  if (!isRecord(payload) || payload.authenticated !== false) {
+    throw new Error('The API did not confirm sign-out.')
+  }
+}
+
 export async function processDocument(
   file: File,
   onProgress: (progress: PipelineProgress) => void,
@@ -202,6 +231,9 @@ async function apiRequest(path: string, init?: RequestInit): Promise<Response> {
   }
   if (!response.ok) {
     const detail = await readErrorDetail(response)
+    if (response.status === 401 && !path.startsWith('/api/auth/')) {
+      window.dispatchEvent(new Event('invoice-review:auth-required'))
+    }
     throw new Error(detail || `The API request failed with status ${response.status}.`)
   }
   return response
