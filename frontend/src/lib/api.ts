@@ -15,11 +15,11 @@ export async function getAuthSession(): Promise<boolean> {
   return payload.authenticated
 }
 
-export async function login(password: string): Promise<void> {
+export async function login(name: string, password: string): Promise<void> {
   const response = await apiRequest('/api/auth/login', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ name, password }),
   })
   const payload: unknown = await response.json()
   if (!isRecord(payload) || payload.authenticated !== true) {

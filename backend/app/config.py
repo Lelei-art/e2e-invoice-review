@@ -15,6 +15,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    app_access_name: str | None = None
     app_access_password: SecretStr | None = None
     app_session_secret: SecretStr | None = None
     frontend_dist_dir: Path | None = None
@@ -25,6 +26,10 @@ class Settings(BaseSettings):
         if (self.app_access_password is None) != (self.app_session_secret is None):
             raise ValueError(
                 "APP_ACCESS_PASSWORD and APP_SESSION_SECRET must be configured together."
+            )
+        if self.app_access_password is not None and self.app_access_name is None:
+            raise ValueError(
+                "APP_ACCESS_NAME must be configured when access protection is enabled."
             )
         return self
 

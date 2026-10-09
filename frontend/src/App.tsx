@@ -27,6 +27,7 @@ function createInitialStageStates(): PipelineStageStates {
 function App() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [authState, setAuthState] = useState<'checking' | 'signedIn' | 'signedOut' | 'unavailable'>('checking')
+  const [name, setName] = useState('Christine Lelei')
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
@@ -41,7 +42,7 @@ function App() {
   useEffect(() => {
     const handleAuthRequired = () => {
       setAuthState('signedOut')
-      setAuthError('Your sign-in expired. Enter the shared password to continue.')
+      setAuthError('Your sign-in expired. Enter your password to continue.')
     }
     window.addEventListener('invoice-review:auth-required', handleAuthRequired)
     void getAuthSession()
@@ -59,7 +60,8 @@ function App() {
     setAuthBusy(true)
     setAuthError(null)
     try {
-      await login(password)
+      await login(name, password)
+      setName('Christine Lelei')
       setPassword('')
       setAuthState('signedIn')
     } catch (reason) {
@@ -167,7 +169,7 @@ function App() {
           <span className="brand-mark" aria-hidden="true">A</span>
           <p className="auth-eyebrow">APEX FACILITIES B.V.</p>
           <h1 id="auth-title">
-            {authState === 'checking' ? 'Checking access' : 'Shared workspace'}
+            {authState === 'checking' ? 'Checking access' : 'Workspace'}
           </h1>
           {authState === 'checking' ? (
             <p className="auth-description">Checking your sign-in status…</p>
@@ -181,12 +183,21 @@ function App() {
             </>
           ) : (
             <>
-              <p className="auth-description">Enter the shared password to access invoice reviews.</p>
+              <p className="auth-description">Enter your name and password to access document reviews.</p>
               <form className="auth-form" onSubmit={(event) => void submitLogin(event)}>
-                <label htmlFor="shared-password">Shared password</label>
+                <label htmlFor="login-name">Name</label>
+                <input
+                  autoComplete="username"
+                  id="login-name"
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                  type="text"
+                  value={name}
+                />
+                <label htmlFor="login-password">Password</label>
                 <input
                   autoComplete="current-password"
-                  id="shared-password"
+                  id="login-password"
                   onChange={(event) => setPassword(event.target.value)}
                   required
                   type="password"

@@ -16,6 +16,7 @@ SESSION_LIFETIME_SECONDS = 12 * 60 * 60
 class LoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
+    name: str = Field(min_length=1, max_length=128)
     password: str = Field(min_length=1, max_length=1024)
 
 
@@ -43,12 +44,16 @@ def login(
     if not settings.access_enabled:
         return SessionStatus(authenticated=True)
 
+    assert settings.app_access_name is not None
     assert settings.app_access_password is not None
+    expected_name = settings.app_access_name
     expected = settings.app_access_password.get_secret_value()
-    if not hmac.compare_digest(credentials.password, expected):
+    if not hmac.compare_digest(credentials.name, expected_name) or not hmac.compare_digest(
+        credentials.password, expected
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="The shared password is incorrect.",
+            detail="The name or password is incorrect.",
         )
 
     response.set_cookie(

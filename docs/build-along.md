@@ -519,7 +519,7 @@ Both processes write their logs to the terminal. Vite serves the welcome screen 
 
 ### Outcome
 
-The complete React application and FastAPI API run together in `ca-invoice-review` in the existing `rg-invoice-review` resource group. Its existing Document Intelligence and Foundry resources are reused. A shared password protects the review UI and API; SQLite review history persists on the `invoice-review-data` Azure Files share. Azure Container Apps provides the public HTTPS endpoint.
+The complete React application and FastAPI API run together in `ca-invoice-review` in the existing `rg-invoice-review` resource group. Its existing Document Intelligence and Foundry resources are reused. A shared name and password protect the review UI and API; this is one shared gate, not individual accounts. SQLite review history persists on the `invoice-review-data` Azure Files share. Azure Container Apps provides the public HTTPS endpoint.
 
 ### Why
 
@@ -548,29 +548,32 @@ az provider register --namespace Microsoft.ContainerRegistry --wait
 az provider register --namespace Microsoft.OperationalInsights --wait
 ```
 
-The initial image was `acrinvrvw261008.azurecr.io/invoice-review:20261008-1153`. The SQLite-on-Azure-Files fix was built as `acrinvrvw261008.azurecr.io/invoice-review:20261008-094022-dotfile` and deployed by updating the existing app. For a later code update, generate a fresh tag rather than overwriting either deployed image:
+The initial image was `acrinvrvw261008.azurecr.io/invoice-review:20261008-1153`. The SQLite-on-Azure-Files fix was built as `acrinvrvw261008.azurecr.io/invoice-review:20261008-094022-dotfile`; the name-and-password login update is now `acrinvrvw261008.azurecr.io/invoice-review:20261009-074913-named-login`. Both updates were deployed by changing the existing app. For a later code update, generate a fresh tag rather than overwriting a deployed image:
 
 ```powershell
-$tag = (Get-Date).ToUniversalTime().ToString('yyyyMMdd-HHmmss') + '-dotfile'
+$tag = (Get-Date).ToUniversalTime().ToString('yyyyMMdd-HHmmss') + '-named-login'
 az acr build --registry acrinvrvw261008 --resource-group rg-invoice-review --image "invoice-review:$tag" .
-az containerapp update --resource-group rg-invoice-review --name ca-invoice-review --image "acrinvrvw261008.azurecr.io/invoice-review:$tag" --set-env-vars SQLITE_VFS=unix-dotfile
+az containerapp update --resource-group rg-invoice-review --name ca-invoice-review --image "acrinvrvw261008.azurecr.io/invoice-review:$tag" --set-env-vars 'APP_ACCESS_NAME=Christine Lelei' SQLITE_VFS=unix-dotfile
 ```
 
 The app already has the `invoice-review-data` Azure Files share mounted at `/app/backend/data`, public HTTPS ingress on port `8000`, one minimum/maximum replica, and Azure Monitor diagnostics. Do not create another registry, share, environment, or app. When configuring a fresh local development environment, leave `SQLITE_VFS` unset; only the Linux Azure Files deployment uses `unix-dotfile`. Keep the app at one replica and one Uvicorn process. Configure:
 
 - `AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` and `AZURE_OPENAI_ENDPOINT` as endpoint environment variables.
 - `AZURE_DOCUMENT_INTELLIGENCE_KEY`, `AZURE_OPENAI_API_KEY`, `APP_ACCESS_PASSWORD`, and `APP_SESSION_SECRET` as Container App secrets, referenced by environment variables.
+- `APP_ACCESS_NAME=Christine Lelei` as a Container App environment variable.
 - `FRONTEND_DIST_DIR=/app/frontend/dist`.
 - External ingress on port `8000`; Azure provides HTTPS.
 - An `ALLOWED_ORIGIN` is not needed for the combined same-origin frontend/API.
 
-Use the existing provider endpoint/key values from the ignored local `backend/.env`. Generate a new strong shared password and session secret for the hosted app; do not echo, commit, or pass secret values as build arguments. Obtain the final URL from `az containerapp show` after provisioning.
+Use the existing provider endpoint/key values from the ignored local `backend/.env`. Set the shared name to `Christine Lelei` and configure a strong shared password and session secret for the hosted app; do not commit or pass secret values as build arguments. The sign-in form checks the submitted name and password against this shared configuration and does not create user accounts. Obtain the final URL from `az containerapp show` after provisioning.
 
 ### What you should observe
 
-`GET /health` returns `{"status":"ok"}`. The deployed HTTPS URL is `https://ca-invoice-review.happyplant-4cc89b4a.eastus2.azurecontainerapps.io/`. The active revision runs the `20261008-094022-dotfile` image with `SQLITE_VFS=unix-dotfile`, one replica, and the existing Azure Files mount. The UI returns HTTP 200; anonymous history access returns 401; password sign-in succeeds; and authenticated history access returns HTTP 200.
+`GET /health` returns `{"status":"ok"}`. The deployed HTTPS URL is `https://ca-invoice-review.happyplant-4cc89b4a.eastus2.azurecontainerapps.io/`. The active revision runs the `20261009-084101-login-copy` image with `APP_ACCESS_NAME=Christine Lelei`, `SQLITE_VFS=unix-dotfile`, one replica, and the existing Azure Files mount. The UI asks for a name and password to access document reviews; the configured name is `Christine Lelei`, and either credential being incorrect returns HTTP 401. Anonymous history access returns 401; valid sign-in and authenticated history access return HTTP 200.
 
-For the manual end-to-end walkthrough, sign in at the deployed URL, upload the fictional `samples/generated/01-en-happy-classic.pdf`, and select **Start document review**. The result classified it as an invoice, extracted the parties and EUR 100.00 subtotal + EUR 21.00 VAT = EUR 121.00 total, completed validation, and suggested GL account 6090. It correctly remained **Needs review** because primary extraction confidence for the supplier name was below 0.80; there were no blocking errors. Navigating to the Review inbox showed the saved review, confirming persistence in the mounted database. The app does not retain the original upload. This walkthrough made paid Azure AI requests; do not repeat it unless another processing check is intended.
+For the manual end-to-end walkthrough, sign in at the deployed URL, upload the fictional `samples/generated/01-en-happy-classic.pdf`, and select **Start document review**. The result classified it as an invoice, extracted the parties and EUR 100.00 subtotal + EUR 21.00 VAT = EUR 121.00 total, completed validation, and suggested GL account 6090. It correctly remained **Needs review** because primary extraction confidence for the supplier name was below 0.80; there were no blocking errors. Navigating to the Review inbox showed the saved review at that time. The app does not retain the original upload. This walkthrough made paid Azure AI requests; do not repeat it unless another processing check is intended.
+
+After the later named-login revision was deployed, the authenticated history API returned an empty list and a read-only database inspection found no review rows in the mounted SQLite database. No review-deletion operation was issued as part of the login change. Treat review-history persistence as unresolved and investigate before relying on old history; do not recreate or delete the database as a workaround.
 
 The ACR Basic tier, storage, Container Apps environment, and logging may incur charges. Live document review also makes paid Azure AI requests. The shared password grants anyone who receives it access to the demo, so use fictional documents only and rotate it if shared beyond the intended audience.
 
@@ -580,6 +583,7 @@ The ACR Basic tier, storage, Container Apps environment, and logging may incur c
 - [ ] Azure hosting providers are registered and the container build succeeds.
 - [ ] The Container App has public HTTPS ingress, one replica, the Azure Files data mount, and `SQLITE_VFS=unix-dotfile`.
 - [ ] `/health` is healthy; the sign-in screen is public, but review endpoints reject unauthenticated requests.
-- [ ] Sign-in succeeds with the shared password; the authenticated history endpoint initializes and reads the mounted SQLite database.
+- [x] The name-and-password gate accepts `Christine Lelei` with the configured shared password and rejects a different name; the signed cookie remains Secure and HttpOnly.
+- [ ] Sign-in succeeds; the authenticated history endpoint reads review records from the mounted SQLite database.
 - [x] The fictional `samples/generated/01-en-happy-classic.pdf` completed classification, extraction, validation, GL suggestion, and persisted in review history; the low-confidence warning leaves it for human review.
 - [ ] Review history remains after a new container revision starts.
