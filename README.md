@@ -4,7 +4,7 @@ This is the clean starter for an end-to-end invoice and receipt review applicati
 
 > You are on `main`, the learner starter. Active work is visible on `development`; the reviewed finished application is on `solution`.
 
-Tutorial: <https://learn.datalumina.com/docs/invoice-review>
+
 
 ## What is included
 
@@ -57,4 +57,3 @@ To switch to the finished application:
 git switch solution
 ```
 
-Start with [the client brief](docs/client-brief.md), then follow the [complete tutorial](https://learn.datalumina.com/docs/invoice-review).
